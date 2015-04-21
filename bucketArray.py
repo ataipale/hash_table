@@ -8,15 +8,15 @@ class bucketArray:
 		self.buckets = self.size * [None]
 
 	# modifies bucketArray to store KVP
-	# xxx check that we aren't getting stuck in a full array
+	# xxx check that we aren't getting stuck in a full array? need to?
 	def internal_store(self, KVP, index):
 		self.sizeCount += 1
 		if index >= self.size:
 			index = 0
-		if self.buckets[index]:
-			self.internal_store(KVP, index+1)
-		else:
+		if self.buckets[index] == None or self.buckets[index] == "Grave Stone":
 			self.buckets[index] = KVP
+		else:
+			self.internal_store(KVP, index+1)
 
 	def internal_fetch(self, key, index):
 		if self.buckets[index] == None:
@@ -26,12 +26,23 @@ class bucketArray:
 		else:
 			return self.internal_fetch(key, index+1)
 
-	# xxx Add remove function
+	# If we find none at the insertion site or the following spaces
+	# return "key not found". Otherwise, replace the KVP with a 
+	# Grave Stone.
+	# xxx Do I want remove to remove based just on key term?
+	# Can ppl have duplicate keys? and remove will jsut remove first instance of key?
 	def internal_remove(self, key, index):
 		self.sizeCount -= 1
+		if self.buckets[index] == None:
+			print "Key not found"
+		elif self.buckets[index][0] == key:
+			self.buckets[index] = "Grave Stone"
+		else:
+			self.internal_remove(key, index+1)
+
 
 	def setSize(self):
-		if self.sizeCount > self.size/2:
+		if self.sizeCount > self.size*.66:
 			self.buckets += self.size * [None]
 			self.size = self.size * 2
 		return self.size
@@ -56,10 +67,6 @@ class dict:
 	def __init__(self):
 		self.bucketArray = bucketArray()
 
-	# self.KVP = KVP
-	# self.size = bucketArray.setSize()
-	# self.index = hasher.findIndex()
-
 	def store(self, KVP):
 		index = findIndex(KVP[0], self.bucketArray.setSize())
 		self.bucketArray.internal_store(KVP, index)
@@ -68,15 +75,14 @@ class dict:
 		index = findIndex(key, self.bucketArray.setSize())
 		return self.bucketArray.internal_fetch(key, index)
 
+	# why is this printing none???????
 	def printMe(self):
 		print self.bucketArray.printMe()
 
-	# def remove(KVP):
-	# 	bucketArray.remove()
+	def remove(self, key):
+		index = findIndex(key, self.bucketArray.setSize())
+		self.bucketArray.internal_remove(key, index)
 
-
-
-	
 def main():
 
 	test1 = dict()
@@ -103,6 +109,26 @@ def main():
 
 	# test for inserting something at an already filled spot with same key
 	test_result4 = test1.store(('Hamilton', 'Rosalind'))
+	test1.printMe()
+	test1.store(("Go", "Away"))
+	test1.printMe()
+	test1.remove("Go")
+	test1.printMe()
+	test1.store(("Go", "Away"))
+	test1.printMe()
+	test1.store(("Page", "Away"))
+	test1.printMe()
+	test1.store(("Fly", "Away"))
+	test1.printMe()
+	test1.store(("Go", "Chocolate"))
+	test1.printMe()
+	test1.remove("Bob")
+	test1.printMe()
+	test1.store(("Chocolate", "Chocolate"))
+	test1.printMe()
+	test1.remove(("Chocolate"))
+	test1.printMe()
+	test1.store(("Go", "Away"))
 	test1.printMe()
 
 
