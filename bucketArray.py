@@ -16,10 +16,11 @@ class bucketArray:
 		Internal method to modify the bucket array to store KVP
 		'''
 
-		self.sizeCount += 1
 		if index >= self.size:
 			index = 0
+
 		if self.buckets[index] == None or self.buckets[index] == "Grave Stone" or self.buckets[index][0] == KVP[0]:
+			self.sizeCount += 1
 			self.buckets[index] = KVP
 		else:
 			self.internal_store(KVP, index+1)
@@ -29,11 +30,12 @@ class bucketArray:
 		'''
 		Method to return value stored at given key
 		'''
-
+		if index >= self.size:
+			index = 0
 		if self.buckets[index] == None:
 			return None
 		elif self.buckets[index][0] == key:
-			return self.buckets[index]
+			return self.buckets[index][1]
 		else:
 			return self.internal_fetch(key, index+1)
 
@@ -45,15 +47,16 @@ class bucketArray:
 		Grave Stone.
 
 		'''
-
-		self.sizeCount -= 1
+		if index >= self.size:
+			index = 0
+			
 		if self.buckets[index] == None:
 			print "Key Not Found"
 		elif self.buckets[index][0] == key:
 			print "Made Grave Stone"
 			self.buckets[index] = "Grave Stone"
+			self.sizeCount -= 1
 		else:
-			print "recurse"
 			self.internal_remove(key, index+1)
 
 
@@ -71,8 +74,6 @@ class bucketArray:
 
 	def printMe(self):
 		print self.buckets
-
-
 
 
 def findIndex(key, size):
@@ -98,6 +99,7 @@ class myDict:
 
 	def __init__(self):
 		self.bucketArray = bucketArray()
+		# self.size = self.bucketArray.setSize()
 
 	def store(self, KVP):
 		index = findIndex(KVP[0], self.bucketArray.setSize())
@@ -107,15 +109,46 @@ class myDict:
 		index = findIndex(key, self.bucketArray.setSize())
 		return self.bucketArray.internal_fetch(key, index)
 
-	def printMe(self):
-		self.bucketArray.printMe()
-
 	def remove(self, key):
 		index = findIndex(key, self.bucketArray.setSize())
 		self.bucketArray.internal_remove(key, index)
 
+	def printMe(self):
+		self.bucketArray.printMe()
+
+def test(actual, expected, message):
+	if actual == expected: print "ok      # %s" %message
+	else: print "not ok # got %s, expected %s, (%s)" %(actual, expected, message)
+
 def main():
 
+	# TESTS BELOW
+	test1 = myDict()
+
+	# test large insertion
+	list = [ (str(x), x) for x in range(1000) ]
+	for key, value in list: test1.store((key, value))
+	test(test1.bucketArray.sizeCount, 1000, "test sizeCount")
+	test(test1.bucketArray.size > 1000.0/.66, True, "test size")
+
+	
+	# test for input and fetch function
+	test1.store(('Hamilton', 'Margaret'))
+	test(test1.fetch('Hamilton'), 'Margaret', "fetch inserted key")
+
+	# test for searching for wrong name at filled index
+	test(test1.fetch('Jim'), None, "fetch non-existant key")
+
+	# test for inserting something at an already filled spot with same key
+	test1.store(('Hamilton', 'Rosalind'))
+	test(test1.fetch('Hamilton'), 'Rosalind', "rewrite key")
+
+	# test removal 
+	test1.remove('Hamilton')
+	test(test1.fetch('Hamilton'), None, "delete key")
+
+
+	print "TIME TESTS:"
 	# Timing Tests 
 	range_size=500
 	count=500
@@ -126,7 +159,6 @@ def main():
 		print t.timeit(number = count)
 		print "Repeated %s times in %s: " %(str(repeat), str(t))
 		print t.repeat(3, count)
-
 
 	setup_statement=dedent('''
 		from bucketArray import myDict;
@@ -156,54 +188,6 @@ def main():
 	my_timer = timeit.Timer("for s in l: d.remove(s)",setup_statement)
 	print_results(my_timer)
 	'''
-
-	# TESTS BELOW
-	test1 = myDict()
-	KVP1 = ('Hamilton', 'Margaret')
-	test1.store(KVP1)
-	print test1
-
-	# test for fetch correctly finding input
-	test_result = test1.fetch(KVP1[0])
-	index = findIndex(KVP1[0], 8)
-	if test_result[1] == 'Margaret':
-		print "ok"
-	else:
-		print "input %t , expected 'Margaret'" %test_result
-
-	# test for searching for wrong name at filled index
-	test_result3 = test1.fetch('Jim')
-	if test_result3 == None:
-		print "ok"
-	else:
-		print "input %s , expected 'None'" %str(test_result3)
-
-	# test for inserting something at an already filled spot with same key
-	'''
-	test_result4 = test1.store(('Hamilton', 'Rosalind'))
-	test1.printMe()
-	test1.store(("Go", "Away"))
-	test1.printMe()
-	test1.remove("Go")
-	test1.printMe()
-	test1.store(("Go", "Away"))
-	test1.printMe()
-	test1.store(("Page", "Away"))
-	test1.printMe()
-	test1.store(("Fly", "Away"))
-	test1.printMe()
-	test1.store(("Go", "Chocolate"))
-	test1.printMe()
-	test1.remove("Bob")
-	test1.printMe()
-	test1.store(("Chocolate", "Chocolate"))
-	test1.printMe()
-	test1.remove(("Chocolate"))
-	test1.printMe()
-	test1.store(("Go", "Away"))
-	test1.printMe()
-	'''
-
 
 if __name__ == '__main__':
 	main()
